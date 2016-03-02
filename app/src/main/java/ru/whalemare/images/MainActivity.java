@@ -1,5 +1,6 @@
 package ru.whalemare.images;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -31,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     SharedPreferences shared;
     ImageView image; // главная фотография
-    Button download; // кнопка загрузки фотографии
+    Button downloadImage = null; // кнопка загрузки фотографии
 
 
     @Override
@@ -42,16 +44,18 @@ public class MainActivity extends AppCompatActivity {
         shared = getSharedPreferences(SHARED_TAG, MODE_PRIVATE);
 
         image = (ImageView) findViewById(R.id.imageView_mainImage);
-        download = (Button) findViewById(R.id.button_downloadImage);
+        downloadImage = (Button) findViewById(R.id.button_downloadImage);
     }
 
     public void onClick(View view){
         switch (view.getId()){
             case R.id.button_downloadImage:
                 showPopup(view);
-                Log.d(TAG, "Нажали загрузить изображение");
+                Log.d(TAG, "Нажали на кнопку загрузить изображение");
                 break;
             case R.id.imageView_mainImage:
+                showPopup(view);
+                Log.d(TAG, "Нажали на изображение");
                 break;
             case R.id.button_rotate:
                 break;
@@ -80,6 +84,26 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     case R.id.popup_onInternet:
                         Log.d(TAG, "onMenuItemClick: Скачать из интернета");
+                        final Dialog dialog = new Dialog(MainActivity.this);
+                        dialog.setContentView(R.layout.download_dialog);
+                        dialog.setTitle("Загрузка изображения");
+                        Button ok = (Button) dialog.findViewById(R.id.downloadDialog_button_ok);
+                        final EditText url = (EditText) dialog.findViewById(R.id.downloadDialog_editText_URL);
+                        ok.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                downloadImage(url.getText().toString());
+                                dialog.dismiss();
+                            }
+                        });
+                        Button cancel = (Button) dialog.findViewById(R.id.downloadDialog_button_cancel);
+                        cancel.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                dialog.dismiss();
+                            }
+                        });
+                        dialog.show();
                         return true;
                     default:
                         Log.d(TAG, "onMenuItemClick: ничего не выбрано");
@@ -143,13 +167,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setImage(Bitmap bitmap) {
-        if (download.getVisibility() == View.VISIBLE) {
-            download.setVisibility(View.GONE); // уберем кнопку
-            image.setVisibility(View.VISIBLE); // и поставим на ее место изображение
-            image.setImageBitmap(bitmap);
-        } else {
-            Log.d(TAG, "setImage: кнопки уже нет");
-        }
+        downloadImage.setVisibility(View.GONE); // уберем кнопку
+        image.setVisibility(View.VISIBLE); // и поставим на ее место изображение
+        image.setImageBitmap(bitmap);
     }
 
     private void savePicture(Bitmap bitmap) throws IOException {
@@ -166,6 +186,11 @@ public class MainActivity extends AppCompatActivity {
         shared.edit().putString("imagepath", destination + (filename + ".png")).commit(); // сохраним путь хранения изображения
         // TODO: 02.03.2016 добавить регистрацию в Галерее
         // http://www.cyberforum.ru/android-dev/thread1584902.html
+    }
+
+    private void downloadImage(String URL){
+        DownloadImageTask download = new DownloadImageTask(image, downloadImage);
+        download.execute(URL);
     }
 
     @Override
