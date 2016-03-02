@@ -3,6 +3,7 @@ package ru.whalemare.images;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -23,8 +24,10 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "WHALETAG";
     private static final String SHARED_TAG = "WHALE";
+    private static String image_path = "0";
 
     private static final int CAMERA_RESULT = 0;
+    private static final int GALLERY_RESULT = 1;
 
     SharedPreferences shared;
     ImageView image; // главная фотография
@@ -68,17 +71,18 @@ public class MainActivity extends AppCompatActivity {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()){
                     case R.id.popup_onCamera:
-                        Toast.makeText(MainActivity.this, "Сделать снимок", Toast.LENGTH_SHORT).show();
-                        takePicture(CAMERA_RESULT);
+                        Log.d(TAG, "onMenuItemClick: сделать снимок");
+                        makePicture(CAMERA_RESULT);
                         return true;
                     case R.id.popup_onDevice:
-                        Toast.makeText(MainActivity.this, "Загрузить с девайса", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "onMenuItemClick: загрузить с девайса");
+                        makePicture(GALLERY_RESULT);
                         return true;
                     case R.id.popup_onInternet:
-                        Toast.makeText(MainActivity.this, "Скачать из интернета", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "onMenuItemClick: Скачать из интернета");
                         return true;
                     default:
-                        Toast.makeText(MainActivity.this, "Ничего не выбрано", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "onMenuItemClick: ничего не выбрано");
                         return false;
                 }
             }
@@ -86,23 +90,65 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.show();
     }
 
-    private void takePicture(int actionCode){
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(takePictureIntent, actionCode);
+    private void makePicture(int actionCode){
+        Intent takePicture;
+        switch (actionCode) {
+            case CAMERA_RESULT:
+                takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                break;
+            case GALLERY_RESULT:
+                takePicture = new Intent(Intent.ACTION_PICK);
+                takePicture.setType("image/*");
+                break;
+            default:
+                takePicture = null;
+        }
+        if (takePicture !=  null)
+            startActivityForResult(takePicture, actionCode);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == CAMERA_RESULT && data.hasExtra("data")) {
-            Bitmap thumbnailBitmap = (Bitmap) data.getExtras().get("data");
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case CAMERA_RESULT:
+                if (data.hasExtra("data")) {
+                    Bitmap thumbnailBitmap = (Bitmap) data.getExtras().get("data");
+                    setImage(thumbnailBitmap);
+                    try {
+                        savePicture(thumbnailBitmap);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            case GALLERY_RESULT:
+                Bitmap bitmap = null;
+                Uri selectedImage = data.getData();
+                try {
+                    bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImage);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (bitmap != null) {
+                    setImage(bitmap);
+                    Log.d(TAG, "onActivityResult: selectedImage путь: " + selectedImage.getPath());
+//                    shared.edit().putString("imagepath", selectedImage+"").commit(); // сохраним путь хранения изображения
+                }
+                else
+                    Toast.makeText(MainActivity.this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show();
+                break;
+        }
+    }
+
+    private void setImage(Bitmap bitmap) {
+        if (download.getVisibility() == View.VISIBLE) {
             download.setVisibility(View.GONE); // уберем кнопку
             image.setVisibility(View.VISIBLE); // и поставим на ее место изображение
-            image.setImageBitmap(thumbnailBitmap);
-            try {
-                savePicture(thumbnailBitmap);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            image.setImageBitmap(bitmap);
+        } else {
+            Log.d(TAG, "setImage: кнопки уже нет");
         }
     }
 
@@ -117,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
         out.flush();
         out.close();
         shared.edit().putInt("counter", ++filename).commit();
+        shared.edit().putString("imagepath", destination + (filename + ".png")).commit(); // сохраним путь хранения изображения
         // TODO: 02.03.2016 добавить регистрацию в Галерее
     }
 
