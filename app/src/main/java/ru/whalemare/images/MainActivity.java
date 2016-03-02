@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
         shared.edit().putInt("counter", ++filename).commit();
         shared.edit().putString("imagepath", destination + (filename + ".png")).commit(); // сохраним путь хранения изображения
         // TODO: 02.03.2016 добавить регистрацию в Галерее
+        // http://www.cyberforum.ru/android-dev/thread1584902.html
     }
 
     @Override
