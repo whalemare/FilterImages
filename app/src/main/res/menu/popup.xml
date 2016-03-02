@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:title="Выбрать изображение на устройстве"
+        android:id="@+id/popup_onDevice"/>
+    <item
+        android:title="Загрузить из интернета"
+        android:id="@+id/popup_onInternet"/>
+</menu>
