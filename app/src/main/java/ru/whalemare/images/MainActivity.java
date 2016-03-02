@@ -1,18 +1,25 @@
 package ru.whalemare.images;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.support.v7.widget.PopupMenu;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "WHALETAG";
-    ImageView image;
+
+    private static final int CAMERA_RESULT = 0;
+    ImageView image; // главная фотография
+    Button download; // кнопка загрузки фотографии
 
 
     @Override
@@ -22,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate");
 
         image = (ImageView) findViewById(R.id.imageView_mainImage);
+        download = (Button) findViewById(R.id.button_downloadImage);
     }
 
     public void onClick(View view){
@@ -49,6 +57,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()){
+                    case R.id.popup_onCamera:
+                        Toast.makeText(MainActivity.this, "Сделать снимок", Toast.LENGTH_SHORT).show();
+                        takePicture(CAMERA_RESULT);
+                        return true;
                     case R.id.popup_onDevice:
                         Toast.makeText(MainActivity.this, "Загрузить с девайса", Toast.LENGTH_SHORT).show();
                         return true;
@@ -64,6 +76,20 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.show();
     }
 
+    private void takePicture(int actionCode){
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(takePictureIntent, actionCode);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == CAMERA_RESULT && data.hasExtra("data")) {
+            Bitmap thumbnailBitmap = (Bitmap) data.getExtras().get("data");
+            download.setVisibility(View.GONE); // уберем кнопку
+            image.setVisibility(View.VISIBLE); // и поставим на ее место изображение
+            image.setImageBitmap(thumbnailBitmap);
+        }
+    }
 
     @Override
     protected void onPause() {
