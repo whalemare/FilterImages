@@ -4,6 +4,8 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -58,6 +60,12 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Нажали на изображение");
                 break;
             case R.id.button_rotate:
+                if (image.getVisibility() == View.VISIBLE) {
+                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+                    image.setImageBitmap(rotateBitmap(bitmap));
+                } else {
+                    Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
+                }
                 break;
             case R.id.button_invertColors:
                 break;
@@ -148,21 +156,22 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case GALLERY_RESULT:
-                Bitmap bitmap = null;
-                Uri selectedImage = data.getData();
-                try {
-                    bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImage);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if (bitmap != null) {
-                    setImage(bitmap);
-                    Log.d(TAG, "onActivityResult: selectedImage путь: " + selectedImage.getPath());
+                if (resultCode == RESULT_OK) {
+                    Bitmap bitmap = null;
+                    Uri selectedImage = data.getData();
+                    try {
+                        bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImage);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (bitmap != null) {
+                        setImage(bitmap);
+                        Log.d(TAG, "onActivityResult: selectedImage путь: " + selectedImage.getPath());
 //                    shared.edit().putString("imagepath", selectedImage+"").commit(); // сохраним путь хранения изображения
+                    } else
+                        Toast.makeText(MainActivity.this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show();
+                    break;
                 }
-                else
-                    Toast.makeText(MainActivity.this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show();
-                break;
         }
     }
 
@@ -191,6 +200,12 @@ public class MainActivity extends AppCompatActivity {
     private void downloadImage(String URL){
         DownloadImageTask download = new DownloadImageTask(image, downloadImage);
         download.execute(URL);
+    }
+
+    private Bitmap rotateBitmap(Bitmap bitmap) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(90);
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
     @Override
