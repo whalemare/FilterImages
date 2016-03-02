@@ -1,8 +1,10 @@
 package ru.whalemare.images;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
@@ -13,11 +15,18 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "WHALETAG";
+    private static final String SHARED_TAG = "WHALE";
 
     private static final int CAMERA_RESULT = 0;
+
+    SharedPreferences shared;
     ImageView image; // главная фотография
     Button download; // кнопка загрузки фотографии
 
@@ -27,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate");
+        shared = getSharedPreferences(SHARED_TAG, MODE_PRIVATE);
 
         image = (ImageView) findViewById(R.id.imageView_mainImage);
         download = (Button) findViewById(R.id.button_downloadImage);
@@ -88,7 +98,38 @@ public class MainActivity extends AppCompatActivity {
             download.setVisibility(View.GONE); // уберем кнопку
             image.setVisibility(View.VISIBLE); // и поставим на ее место изображение
             image.setImageBitmap(thumbnailBitmap);
+            try {
+                savePicture(thumbnailBitmap);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    private void savePicture(Bitmap bitmap) throws IOException {
+        Log.d(TAG, "savePicture: сохраняем картинку");
+        int filename = shared.getInt("counter", 0);
+        File sd = Environment.getExternalStorageDirectory(); // сохраняем на внутреннюю память todo сделать сохранение в папку приложения
+        File destination = new File(sd, filename+".png");
+
+        FileOutputStream out = new FileOutputStream(destination);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 80, out);
+        out.flush();
+        out.close();
+        shared.edit().putInt("counter", ++filename).commit();
+        // TODO: 02.03.2016 добавить регистрацию в Галерее
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.d(TAG, "onSaveInstanceState: сохраняем данные");
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.d(TAG, "onRestoreInstanceState: загружаем данные");
     }
 
     @Override
