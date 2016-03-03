@@ -4,7 +4,12 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -68,6 +73,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case R.id.button_invertColors:
+                if (image.getVisibility() == View.VISIBLE) {
+                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+                    image.setImageBitmap(invertBitmap(bitmap));
+                }
                 break;
             case R.id.button_mirror:
                 break;
@@ -176,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setImage(Bitmap bitmap) {
+        // FIXME: 03.03.2016 если кнопка gone он повтороно убирает ее в gone
         downloadImage.setVisibility(View.GONE); // уберем кнопку
         image.setVisibility(View.VISIBLE); // и поставим на ее место изображение
         image.setImageBitmap(bitmap);
@@ -206,6 +216,26 @@ public class MainActivity extends AppCompatActivity {
         Matrix matrix = new Matrix();
         matrix.postRotate(90);
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+    }
+
+    private Bitmap invertBitmap(Bitmap bitmap) {
+        ColorMatrix inverted = new ColorMatrix(new float[]{
+                -1,  0,  0,  0, 255,
+                0, -1,  0,  0, 255,
+                0,  0, -1,  0, 255,
+                0,  0,  0,  1,   0
+        });
+        ColorFilter filter = new ColorMatrixColorFilter(inverted);
+
+        Bitmap image = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        Bitmap mutableImage = image.copy(Bitmap.Config.ARGB_8888, true);
+        Canvas canvas = new Canvas(mutableImage);
+        Paint paint = new Paint();
+
+        paint.setColorFilter(filter);
+        canvas.drawBitmap(bitmap, 0, 0, paint);
+
+        return mutableImage;
     }
 
     @Override
