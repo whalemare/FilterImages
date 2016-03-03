@@ -13,7 +13,8 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:id="@+id/linearLayout">
 
         <ImageView
             android:layout_width="150dp"
@@ -26,16 +27,20 @@
             android:visibility="gone"/>
 
         <Button
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="Загрузить изображение"
             android:onClick="onClick"
-            android:id="@+id/button_downloadImage"/>
+            android:id="@+id/button_downloadImage"
+            android:layout_weight="1"
+            android:minWidth="150dp"
+            android:minHeight="150dp"/>
 
         <LinearLayout
             android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="150dp">
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
             <Button
                 android:layout_width="wrap_content"
@@ -61,7 +66,40 @@
                 android:id="@+id/button_mirror"
                 android:layout_gravity="center_horizontal"/>
 
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Добавить"
+                android:onClick="onClick"
+                android:id="@+id/button_add"
+                android:layout_gravity="right"/>
+
         </LinearLayout>
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/linearLayout">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/scrollView"
+            android:layout_gravity="center_horizontal">
+
+            <LinearLayout
+                android:id="@+id/linearLayout_down"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/linearLayout">
+
+            </LinearLayout>
+
+        </ScrollView>
     </LinearLayout>
 </RelativeLayout>
