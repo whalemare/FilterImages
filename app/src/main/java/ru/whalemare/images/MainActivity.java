@@ -79,6 +79,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case R.id.button_mirror:
+                if (image.getVisibility() == View.VISIBLE) {
+                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+                    image.setImageBitmap(mirrorBitmap(bitmap));
+                }
                 break;
         }
     }
@@ -236,6 +240,12 @@ public class MainActivity extends AppCompatActivity {
         canvas.drawBitmap(bitmap, 0, 0, paint);
 
         return mutableImage;
+    }
+
+    private Bitmap mirrorBitmap(Bitmap bitmap) {
+        Matrix matrix = new Matrix();
+        matrix.preScale(-1, 1);
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
     @Override
