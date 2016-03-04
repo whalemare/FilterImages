@@ -7,10 +7,10 @@
 
     <EditText
         android:id="@+id/downloadDialog_editText_URL"
-        android:hint="Enter some thing"
+        android:hint="@string/enetered_URL"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="http://www.nsu.ru/images/facebook-nsu-icon.png">
+        android:text="@string/link_to_image">
 
         <requestFocus />
     </EditText>
@@ -27,7 +27,7 @@
             android:layout_weight="1"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="ok" />
+            android:text="@string/ok" />
 
         <Button
             android:id="@+id/downloadDialog_button_cancel"
@@ -35,7 +35,7 @@
             android:layout_weight="1"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Отмена" />
+            android:text="@string/cancel" />
 
     </LinearLayout>
 </LinearLayout>

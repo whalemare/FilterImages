@@ -4,12 +4,6 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.ColorFilter;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -42,7 +36,8 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences shared;
     ImageView image; // главная фотография
     Button downloadImage; // кнопка загрузки фотографии
-    Button add;
+    Button add; // temp
+    LinearLayout layout; // лайаут с индикаторами загрузки
 
 
     @Override
@@ -55,9 +50,11 @@ public class MainActivity extends AppCompatActivity {
         image = (ImageView) findViewById(R.id.imageView_mainImage);
         downloadImage = (Button) findViewById(R.id.button_downloadImage);
         add = (Button) findViewById(R.id.button_add);
+        layout = (LinearLayout) findViewById(R.id.linearLayout_down);
     }
 
     public void onClick(View view){
+        ConvertImageTask convertImage;
         switch (view.getId()){
             case R.id.button_downloadImage:
                 showPopup(view);
@@ -70,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_rotate:
                 if (image.getVisibility() == View.VISIBLE) {
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-                    image.setImageBitmap(rotateBitmap(bitmap));
+                    convertImage = new ConvertImageTask(image, 0, layout, MainActivity.this);
+                    convertImage.execute(bitmap);
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
@@ -78,13 +76,19 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_invertColors:
                 if (image.getVisibility() == View.VISIBLE) {
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-                    image.setImageBitmap(invertBitmap(bitmap));
+                    convertImage = new ConvertImageTask(image, 1, layout, MainActivity.this);
+                    convertImage.execute(bitmap);
+                } else {
+                    Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.button_mirror:
                 if (image.getVisibility() == View.VISIBLE) {
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-                    image.setImageBitmap(mirrorBitmap(bitmap));
+                    convertImage = new ConvertImageTask(image, 2, layout, MainActivity.this);
+                    convertImage.execute(bitmap);
+                } else {
+                    Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.button_add:
@@ -103,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
+                //TODO ОБРАБОТАТЬ СЛИШКОМ БОЛЬШИЕ КАРТИНКИ
                 switch (item.getItemId()){
                     case R.id.popup_onCamera:
                         Log.d(TAG, "onMenuItemClick: сделать снимок");
@@ -223,38 +228,6 @@ public class MainActivity extends AppCompatActivity {
     private void downloadImage(String URL){
         DownloadImageTask download = new DownloadImageTask(image, downloadImage);
         download.execute(URL);
-    }
-
-    private Bitmap rotateBitmap(Bitmap bitmap) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(90);
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-    }
-
-    private Bitmap invertBitmap(Bitmap bitmap) {
-        ColorMatrix inverted = new ColorMatrix(new float[]{
-                -1,  0,  0,  0, 255,
-                0, -1,  0,  0, 255,
-                0,  0, -1,  0, 255,
-                0,  0,  0,  1,   0
-        });
-        ColorFilter filter = new ColorMatrixColorFilter(inverted);
-
-        Bitmap image = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        Bitmap mutableImage = image.copy(Bitmap.Config.ARGB_8888, true);
-        Canvas canvas = new Canvas(mutableImage);
-        Paint paint = new Paint();
-
-        paint.setColorFilter(filter);
-        canvas.drawBitmap(bitmap, 0, 0, paint);
-
-        return mutableImage;
-    }
-
-    private Bitmap mirrorBitmap(Bitmap bitmap) {
-        Matrix matrix = new Matrix();
-        matrix.preScale(-1, 1);
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
     @Override
