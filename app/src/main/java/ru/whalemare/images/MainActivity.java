@@ -17,12 +17,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,11 +36,16 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_RESULT = 0;
     private static final int GALLERY_RESULT = 1;
 
-    SharedPreferences shared;
-    ImageView image; // главная фотография
-    Button downloadImage; // кнопка загрузки фотографии
-    LinearLayout layout; // лайаут с индикаторами загрузки
+    int timeout = 0;
 
+    private final Random random = new Random();
+
+    SharedPreferences shared;
+    static ImageView image; // главная фотография
+    Button downloadImage; // кнопка загрузки фотографии
+    static ListView listView;
+    static ListAdapter adapter;
+    static List<Data> dataList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +56,10 @@ public class MainActivity extends AppCompatActivity {
 
         image = (ImageView) findViewById(R.id.imageView_mainImage);
         downloadImage = (Button) findViewById(R.id.button_downloadImage);
-        layout = (LinearLayout) findViewById(R.id.linearLayout_down);
+        listView = (ListView) findViewById(R.id.listView);
+
+        adapter = new ListAdapter(getApplicationContext(), R.layout.item_progress, dataList);
+        listView.setAdapter(adapter);
     }
 
     public void onClick(View view){
@@ -64,27 +75,27 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.button_rotate:
                 if (image.getVisibility() == View.VISIBLE) {
+                    timeout = (random.nextInt(5)); // диапазон [3;30] (random.nextInt(28) + 3);
+                    Log.d(TAG, "doInBackground: задержка в " + timeout + " секунд.");
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-                    convertImage = new ConvertImageTask(image, 0, layout, MainActivity.this);
-                    convertImage.execute(bitmap);
+                    dataList.add(new Data(bitmap, timeout, 0)); // Добавим новый progressBar в listview
+                    adapter.notifyDataSetChanged(); // обновимся
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.button_invertColors:
                 if (image.getVisibility() == View.VISIBLE) {
-                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-                    convertImage = new ConvertImageTask(image, 1, layout, MainActivity.this);
-                    convertImage.execute(bitmap);
+//                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+//                    dataList.add(new Data(bitmap, timeout, 1));
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.button_mirror:
                 if (image.getVisibility() == View.VISIBLE) {
-                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-                    convertImage = new ConvertImageTask(image, 2, layout, MainActivity.this);
-                    convertImage.execute(bitmap);
+//                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+//                    dataList.add(new Data(bitmap, timeout, 2));
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
@@ -100,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 //TODO ОБРАБОТАТЬ СЛИШКОМ БОЛЬШИЕ КАРТИНКИ
-                switch (item.getItemId()){
+                switch (item.getItemId()) {
                     case R.id.popup_onCamera:
                         Log.d(TAG, "onMenuItemClick: сделать снимок");
                         makePicture(CAMERA_RESULT);
@@ -221,6 +232,9 @@ public class MainActivity extends AppCompatActivity {
         DownloadImageTask download = new DownloadImageTask(image, downloadImage);
         download.execute(URL);
     }
+
+/*    convertImage = new ConvertImageTask(image, 0, MainActivity.this, adapter);
+    convertImage.execute(bitmap);*/
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {

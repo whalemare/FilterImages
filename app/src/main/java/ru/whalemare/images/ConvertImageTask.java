@@ -1,6 +1,5 @@
 package ru.whalemare.images;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
@@ -10,11 +9,8 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-
-import java.util.Random;
+import android.widget.ProgressBar;
 
 public class ConvertImageTask extends AsyncTask<Bitmap, Integer, Bitmap> {
 
@@ -24,37 +20,57 @@ public class ConvertImageTask extends AsyncTask<Bitmap, Integer, Bitmap> {
     private static final int TYPE_INVERT = 1;
     private static final int TYPE_MIRROR = 2;
 
-    private final Random random = new Random();
-    private ImageView image;
-    private LinearLayout layout;
-    private Context context;
     private int type = -1;
+    private ProgressBar progressBar;
+    private ImageView image;
+
+    int timeout;
 
 
+
+//    /**
+//     * Такс для работы с изображением. Позволяет поворачивать его на 90 градусов, инвертировать цвета и <br>
+//     *     отражать по горизонтали.
+//     * @param type тип конвертации: <br>
+//     *             0 - поворот на 90<br>
+//     *             1 - инвертация цветов <br>
+//     *             2 - отражение по горизонтали
+//     * @param progressBar для отображение прогресса
+//     * @param image ImageView куда должен сеттится готовый bitmap
+//     */
+////    public ConvertImageTask(int type, ProgressBar progressBar, ImageView image, int timeout){
+////        this.type = type;
+////        this.progressBar = progressBar;
+////        this.image = image;
+////        this.timeout = timeout;
+////    }
+
+    final Data item;
     /**
-     * Такс для работы с изображением. Позволяет поворачивать его на 90 градусов, инвертировать цвета и <br>
-     *     отражать по горизонтали.
-     * @param image ImageView куда должен сеттится готовый bitmap
-     * @param type тип конвертации: <br>
-     *             0 - поворот на 90<br>
-     *             1 - инвертация цветов <br>
-     *             2 - отражение по горизонтали
-     * @param layout лайаут, в котором будут находиться данные о прогрессе
-     * @param context для создания индикаторов
+     * Все необхоидмые данные для работы
+     * @param item
      */
-    public ConvertImageTask(ImageView image, int type, LinearLayout layout, Context context){
-        this.image = image;
-        this.type = type;
-        this.layout = layout;
-        this.context = context;
+    public ConvertImageTask(Data item) {
+        this.item = item;
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        Button button = new Button(context);
-        button.setLayoutParams(new LinearLayout.LayoutParams(100, 100));
-        layout.addView(button);
+        item.setConvertedState(Data.ConvertedState.IN);
+    }
+
+    @Override
+    protected void onProgressUpdate(Integer... values) {
+        super.onProgressUpdate(values);
+        int i = values[0];
+        Log.d(TAG, "onProgressUpdate: прогресс " + i);
+        item.setProgress(i);
+        ProgressBar bar = item.getProgressBar();
+        if (bar != null){
+            bar.setProgress(item.getProgress());
+            bar.invalidate();
+        }
     }
 
     @Override
@@ -64,7 +80,7 @@ public class ConvertImageTask extends AsyncTask<Bitmap, Integer, Bitmap> {
 
         switch(type){
             case TYPE_ROTATE:
-                bitmap = rotateBitmap(bitmap);
+                bitmap = invertBitmap(bitmap);
                 break;
             case TYPE_INVERT:
                 bitmap = invertBitmap(bitmap);
@@ -74,27 +90,28 @@ public class ConvertImageTask extends AsyncTask<Bitmap, Integer, Bitmap> {
                 break;
         }
 
-        int count = (random.nextInt(28) + 3); // диапазон [3;30]
-        Log.d(TAG, "doInBackground: задержка в " + count + " секунд.");
-        for (int i=1; i<=count; i++) {
-            Log.d(TAG, "doInBackground: осталось " + (count-i));
+        item.setConvertedState(Data.ConvertedState.IN);
+        for (int i=1; i<=item.getTimeout(); i++) {
+            Log.d(TAG, "doInBackground: осталось " + (item.getTimeout()-i));
             try {
-                // тут паблишПрогресс
                 Thread.sleep(1000); // спим 1 секунду
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            publishProgress(i);
         }
 
         Log.d(TAG, "doInBackground: вышли из сна");
+        item.setConvertedState(Data.ConvertedState.YES);
         return bitmap;
     }
 
     @Override
     protected void onPostExecute(Bitmap bitmap) {
         super.onPostExecute(bitmap);
-        Log.d(TAG, "onPostExecute: закончилась конвертация типа " + type);
-        image.setImageBitmap(bitmap);
+        Log.d(TAG, "onPostExecute: закончилась конвертация типа " + item.getType());
+        item.setOutBitmap(bitmap);
+        item.setConvertedState(Data.ConvertedState.YES);
     }
 
     private Bitmap rotateBitmap(Bitmap bitmap) {

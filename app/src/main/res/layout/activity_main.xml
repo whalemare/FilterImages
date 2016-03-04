@@ -70,28 +70,15 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:orientation="vertical"
+    <ListView
+        android:id="@+id/listView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
         android:layout_below="@+id/linearLayout">
 
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/scrollView"
-            android:layout_gravity="center_horizontal">
+    </ListView>
 
-            <LinearLayout
-                android:id="@+id/linearLayout_down"
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@+id/linearLayout">
-
-            </LinearLayout>
-
-        </ScrollView>
-    </LinearLayout>
 </RelativeLayout>
