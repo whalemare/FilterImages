@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences shared;
     ImageView image; // главная фотография
     Button downloadImage; // кнопка загрузки фотографии
-    Button add; // temp
     LinearLayout layout; // лайаут с индикаторами загрузки
 
 
@@ -49,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
 
         image = (ImageView) findViewById(R.id.imageView_mainImage);
         downloadImage = (Button) findViewById(R.id.button_downloadImage);
-        add = (Button) findViewById(R.id.button_add);
         layout = (LinearLayout) findViewById(R.id.linearLayout_down);
     }
 
@@ -90,12 +88,6 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
-                break;
-            case R.id.button_add:
-                LinearLayout layout = (LinearLayout) findViewById(R.id.linearLayout_down);
-                Button button = new Button(this);
-                button.setLayoutParams(new LinearLayout.LayoutParams(100, 100));
-                layout.addView(button);
                 break;
         }
     }

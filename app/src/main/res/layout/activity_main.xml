@@ -66,14 +66,6 @@
                 android:id="@+id/button_mirror"
                 android:layout_gravity="center_horizontal"/>
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Добавить"
-                android:onClick="onClick"
-                android:id="@+id/button_add"
-                android:layout_gravity="right"/>
-
         </LinearLayout>
 
     </LinearLayout>
