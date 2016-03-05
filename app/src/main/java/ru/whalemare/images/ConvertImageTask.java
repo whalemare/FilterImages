@@ -9,68 +9,43 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+
+import java.util.Random;
 
 public class ConvertImageTask extends AsyncTask<Bitmap, Integer, Bitmap> {
 
     private static final String TAG = "WHALETAG";
+    Random random = new Random();
+    int timeout = random.nextInt(5)+2; // для искусственного замедления конвертации
 
     private static final int TYPE_ROTATE = 0;
     private static final int TYPE_INVERT = 1;
     private static final int TYPE_MIRROR = 2;
 
     private int type = -1;
-    private ProgressBar progressBar;
-    private ImageView image;
 
-    int timeout;
-
-
-
-//    /**
-//     * Такс для работы с изображением. Позволяет поворачивать его на 90 градусов, инвертировать цвета и <br>
-//     *     отражать по горизонтали.
-//     * @param type тип конвертации: <br>
-//     *             0 - поворот на 90<br>
-//     *             1 - инвертация цветов <br>
-//     *             2 - отражение по горизонтали
-//     * @param progressBar для отображение прогресса
-//     * @param image ImageView куда должен сеттится готовый bitmap
-//     */
-////    public ConvertImageTask(int type, ProgressBar progressBar, ImageView image, int timeout){
-////        this.type = type;
-////        this.progressBar = progressBar;
-////        this.image = image;
-////        this.timeout = timeout;
-////    }
-
-    final Data item;
-    /**
-     * Все необхоидмые данные для работы
-     * @param item
-     */
-    public ConvertImageTask(Data item) {
-        this.item = item;
+    ProgressBar bar;
+    ImageView image;
+    public ConvertImageTask(ProgressBar bar, ImageView imageView, int type) {
+        this.bar = bar;
+        this.image = imageView;
+        this.type = type;
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        item.setConvertedState(Data.ConvertedState.IN);
+        bar.setMax(timeout);
     }
 
     @Override
     protected void onProgressUpdate(Integer... values) {
         super.onProgressUpdate(values);
         int i = values[0];
-        Log.d(TAG, "onProgressUpdate: прогресс " + i);
-        item.setProgress(i);
-        ProgressBar bar = item.getProgressBar();
-        if (bar != null){
-            bar.setProgress(item.getProgress());
-            bar.invalidate();
-        }
+        bar.setProgress(i);
     }
 
     @Override
@@ -80,7 +55,7 @@ public class ConvertImageTask extends AsyncTask<Bitmap, Integer, Bitmap> {
 
         switch(type){
             case TYPE_ROTATE:
-                bitmap = invertBitmap(bitmap);
+                bitmap = rotateBitmap(bitmap);
                 break;
             case TYPE_INVERT:
                 bitmap = invertBitmap(bitmap);
@@ -90,9 +65,9 @@ public class ConvertImageTask extends AsyncTask<Bitmap, Integer, Bitmap> {
                 break;
         }
 
-        item.setConvertedState(Data.ConvertedState.IN);
-        for (int i=1; i<=item.getTimeout(); i++) {
-            Log.d(TAG, "doInBackground: осталось " + (item.getTimeout()-i));
+        // Искусственно замедляем конвертацию
+        for (int i=1; i<=timeout; i++) {
+            Log.d(TAG, "doInBackground: осталось " + (timeout-i));
             try {
                 Thread.sleep(1000); // спим 1 секунду
             } catch (InterruptedException e) {
@@ -101,17 +76,16 @@ public class ConvertImageTask extends AsyncTask<Bitmap, Integer, Bitmap> {
             publishProgress(i);
         }
 
-        Log.d(TAG, "doInBackground: вышли из сна");
-        item.setConvertedState(Data.ConvertedState.YES);
         return bitmap;
     }
 
     @Override
     protected void onPostExecute(Bitmap bitmap) {
         super.onPostExecute(bitmap);
-        Log.d(TAG, "onPostExecute: закончилась конвертация типа " + item.getType());
-        item.setOutBitmap(bitmap);
-        item.setConvertedState(Data.ConvertedState.YES);
+        Log.d(TAG, "onPostExecute: закончилась конвертация типа " + type);
+        bar.setVisibility(View.GONE);
+        image.setImageBitmap(bitmap);
+        image.setVisibility(View.VISIBLE);
     }
 
     private Bitmap rotateBitmap(Bitmap bitmap) {

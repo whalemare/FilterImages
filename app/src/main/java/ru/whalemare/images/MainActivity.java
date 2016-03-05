@@ -58,12 +58,11 @@ public class MainActivity extends AppCompatActivity {
         downloadImage = (Button) findViewById(R.id.button_downloadImage);
         listView = (ListView) findViewById(R.id.listView);
 
-        adapter = new ListAdapter(getApplicationContext(), R.layout.item_progress, dataList);
+        adapter = new ListAdapter(getApplicationContext(), dataList);
         listView.setAdapter(adapter);
     }
 
     public void onClick(View view){
-        ConvertImageTask convertImage;
         switch (view.getId()){
             case R.id.button_downloadImage:
                 showPopup(view);
@@ -75,27 +74,27 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.button_rotate:
                 if (image.getVisibility() == View.VISIBLE) {
-                    timeout = (random.nextInt(5)); // диапазон [3;30] (random.nextInt(28) + 3);
-                    Log.d(TAG, "doInBackground: задержка в " + timeout + " секунд.");
-                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-                    dataList.add(new Data(bitmap, timeout, 0)); // Добавим новый progressBar в listview
-                    adapter.notifyDataSetChanged(); // обновимся
+                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
+                    dataList.add(new Data(bitmap, 0));
+                    adapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.button_invertColors:
                 if (image.getVisibility() == View.VISIBLE) {
-//                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-//                    dataList.add(new Data(bitmap, timeout, 1));
+                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+                    dataList.add(new Data(bitmap, 1));
+                    adapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.button_mirror:
                 if (image.getVisibility() == View.VISIBLE) {
-//                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-//                    dataList.add(new Data(bitmap, timeout, 2));
+                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+                    dataList.add(new Data(bitmap, 2));
+                    adapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
