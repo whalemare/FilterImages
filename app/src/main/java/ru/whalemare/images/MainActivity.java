@@ -10,14 +10,15 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -43,8 +44,8 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences shared;
     static ImageView image; // главная фотография
     Button downloadImage; // кнопка загрузки фотографии
-    static ListView listView;
-    static ListAdapter adapter;
+    RecyclerView recyclerView;
+    RecyclerView.Adapter adapter;
     static List<Data> dataList = new ArrayList<>();
 
     @Override
@@ -56,10 +57,16 @@ public class MainActivity extends AppCompatActivity {
 
         image = (ImageView) findViewById(R.id.imageView_mainImage);
         downloadImage = (Button) findViewById(R.id.button_downloadImage);
-        listView = (ListView) findViewById(R.id.listView);
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
 
-        adapter = new ListAdapter(getApplicationContext(), dataList);
-        listView.setAdapter(adapter);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+//        dataList.add(new Data(null, 20));
+
+        adapter = new ListAdapter(dataList);
+        adapter.notifyDataSetChanged();
+        recyclerView.setAdapter(adapter);
     }
 
     public void onClick(View view){
@@ -75,8 +82,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_rotate:
                 if (image.getVisibility() == View.VISIBLE) {
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
-                    dataList.add(new Data(bitmap, 0));
-                    adapter.notifyDataSetChanged();
+                    ConvertImageTask convertImageTask = new ConvertImageTask(bitmap, recyclerView, adapter, 0);
+                    convertImageTask.execute();
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
@@ -84,8 +91,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_invertColors:
                 if (image.getVisibility() == View.VISIBLE) {
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-                    dataList.add(new Data(bitmap, 1));
-                    adapter.notifyDataSetChanged();
+
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
@@ -93,8 +99,6 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_mirror:
                 if (image.getVisibility() == View.VISIBLE) {
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-                    dataList.add(new Data(bitmap, 2));
-                    adapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }

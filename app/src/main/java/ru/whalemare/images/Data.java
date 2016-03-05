@@ -4,28 +4,28 @@ import android.graphics.Bitmap;
 
 public class Data {
 
-    Bitmap bitmap; // изображение для конвертации
-    int type; // тип конвертации
+    Bitmap bitmap; // изображение после конвертации
+    int progress = 20;
 
-    public Data(Bitmap bitmap, int type) {
+    public Data(Bitmap bitmap, int progress) {
         this.bitmap = bitmap;
-        this.type = type;
+        this.progress = progress;
     }
 
     public Bitmap getBitmap() {
         return bitmap;
     }
 
+    public int getProgress() {
+        return progress;
+    }
+
+    public void setProgress(int progress) {
+        this.progress = progress;
+    }
 
     public void setBitmap(Bitmap bitmap) {
         this.bitmap = bitmap;
     }
 
-    public int getType() {
-        return type;
-    }
-
-    public void setType(int type) {
-        this.type = type;
-    }
 }
