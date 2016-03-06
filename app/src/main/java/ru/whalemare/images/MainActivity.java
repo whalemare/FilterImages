@@ -34,31 +34,37 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "WHALETAG";
     private static final String SHARED_TAG = "WHALE";
-    private static String image_path = "0";
+    private static final String KEY_MAIN_BITMAP = "MAIN_BITMAP";
 
     private static final int CAMERA_RESULT = 0;
     private static final int GALLERY_RESULT = 1;
 
     final Random random = new Random();
-    int timeout;
+    int timeout; // время для конвертации изображения
 
     SharedPreferences shared;
     static ImageView image; // главная фотография
-    Button downloadImage; // кнопка загрузки фотографии
+    Button downloadButton; // кнопка загрузки фотографии
     static ListView listView;
     static ListAdapter adapter;
-    static List<Data> dataList = new ArrayList<>();
+    static List<Data> dataList = new ArrayList<>(); // данные о конвертации
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d(TAG, "onCreate");
         shared = getSharedPreferences(SHARED_TAG, MODE_PRIVATE);
 
         image = (ImageView) findViewById(R.id.imageView_mainImage);
-        downloadImage = (Button) findViewById(R.id.button_downloadImage);
+        downloadButton = (Button) findViewById(R.id.button_downloadImage);
         listView = (ListView) findViewById(R.id.listView);
+
+        Bitmap restoreBitmap; // сохраненный с предыдущего сеанса Bitmap
+        if (savedInstanceState != null) {
+            restoreBitmap = savedInstanceState.getParcelable(KEY_MAIN_BITMAP);
+            if (restoreBitmap != null)
+                setMainImage(restoreBitmap);
+        }
 
         adapter = new ListAdapter(getApplicationContext(), R.id.listView, dataList);
         listView.setAdapter(adapter);
@@ -72,9 +78,9 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 // TODO: 06.03.2016 если картинка еще обрабатывается, не сеттить ее
-                                    Bitmap bitmap = ((BitmapDrawable) imagePreview.getDrawable()).getBitmap();
-                                    image.setImageBitmap(bitmap);
-                                    Log.d(TAG, "onClick: установили изображение");
+                                Bitmap bitmap = ((BitmapDrawable) imagePreview.getDrawable()).getBitmap();
+                                image.setImageBitmap(bitmap);
+                                Log.d(TAG, "onClick: установили изображение");
                             }
                         })
                         .setNegativeButton("Удалить", new DialogInterface.OnClickListener() {
@@ -212,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
             case CAMERA_RESULT:
                 if (data.hasExtra("data")) {
                     Bitmap thumbnailBitmap = (Bitmap) data.getExtras().get("data");
-                    setImage(thumbnailBitmap);
+                    setMainImage(thumbnailBitmap);
                     try {
                         savePicture(thumbnailBitmap);
                     } catch (IOException e) {
@@ -230,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     if (bitmap != null) {
-                        setImage(bitmap);
+                        setMainImage(bitmap);
                         Log.d(TAG, "onActivityResult: selectedImage путь: " + selectedImage.getPath());
 //                    shared.edit().putString("imagepath", selectedImage+"").commit(); // сохраним путь хранения изображения
                     } else
@@ -240,13 +246,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setImage(Bitmap bitmap) {
+    private void setMainImage(Bitmap bitmap) {
         // FIXME: 03.03.2016 если кнопка gone он повтороно убирает ее в gone
-        downloadImage.setVisibility(View.GONE); // уберем кнопку
-        image.setVisibility(View.VISIBLE); // и поставим на ее место изображение
-        image.setImageBitmap(bitmap);
+        downloadButton.setVisibility(View.GONE); // уберем кнопку
+        image.setImageBitmap(bitmap); // и поставим на ее место изображение
+        image.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Сохранет bitmap как картинку в память устройства с именем *.png, где * - число 1, 2, 3 ... n, n+1, ... фотографии.
+     * @param bitmap - сохраняем
+     * @throws IOException
+     */
     private void savePicture(Bitmap bitmap) throws IOException {
         Log.d(TAG, "savePicture: сохраняем картинку");
         int filename = shared.getInt("counter", 0);
@@ -257,50 +268,27 @@ public class MainActivity extends AppCompatActivity {
         bitmap.compress(Bitmap.CompressFormat.PNG, 80, out);
         out.flush();
         out.close();
-        shared.edit().putInt("counter", ++filename).commit();
-        shared.edit().putString("imagepath", destination + (filename + ".png")).commit(); // сохраним путь хранения изображения
+        shared.edit().putInt("counter", ++filename).apply();
+        shared.edit().putString("imagepath", destination + (filename + ".png")).apply(); // сохраним путь хранения изображения
         // TODO: 02.03.2016 добавить регистрацию в Галерее
         // http://www.cyberforum.ru/android-dev/thread1584902.html
-    }
-
-    private void downloadImage(String URL){
-        DownloadImageTask download = new DownloadImageTask(image, downloadImage);
-        download.execute(URL);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        Log.d(TAG, "onSaveInstanceState: сохраняем данные");
+        if (image.getVisibility() == View.VISIBLE) {
+            Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+            outState.putParcelable(KEY_MAIN_BITMAP, bitmap);
+        }
     }
 
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        Log.d(TAG, "onRestoreInstanceState: загружаем данные");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d(TAG, "onPause");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "onDestroy");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.d(TAG, "onRestart");
+    /**
+     * Запускает AsyncTask скачивание картинки по URL
+     * @param URL - ссылка на картинку
+     */
+    private void downloadImage(String URL){
+        DownloadImageTask download = new DownloadImageTask(image, downloadButton);
+        download.execute(URL);
     }
 }
