@@ -71,9 +71,10 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton("Установить", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                Bitmap bitmap = ((BitmapDrawable) imagePreview.getDrawable()).getBitmap();
-                                image.setImageBitmap(bitmap);
-                                Log.d(TAG, "onClick: установили изображение");
+                                // TODO: 06.03.2016 если картинка еще обрабатывается, не сеттить ее
+                                    Bitmap bitmap = ((BitmapDrawable) imagePreview.getDrawable()).getBitmap();
+                                    image.setImageBitmap(bitmap);
+                                    Log.d(TAG, "onClick: установили изображение");
                             }
                         })
                         .setNegativeButton("Удалить", new DialogInterface.OnClickListener() {
@@ -105,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.button_rotate:
                 if (image.getVisibility() == View.VISIBLE) {
-                    timeout = random.nextInt(10)+2;
+                    timeout = random.nextInt(20)+2;
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
                     dataList.add(new Data(bitmap, timeout, 0));
                     adapter.notifyDataSetChanged();

@@ -21,6 +21,7 @@ public class ListAdapter extends ArrayAdapter<Data> {
 
     public ListAdapter(Context context, int resource, List<Data> objects) {
         super(context, resource, objects);
+        this.context = context;
     }
 
     private static class ViewHolder {
@@ -38,6 +39,10 @@ public class ListAdapter extends ArrayAdapter<Data> {
         if (row == null) {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             row = inflater.inflate(R.layout.item_progress, parent, false);
+
+            if (position%2 == 0) {
+                row.setBackgroundColor(context.getResources().getColor(R.color.firstColor));
+            }
 
             holder = new ViewHolder();
             holder.progressBar = (ProgressBar) row.findViewById(R.id.itemProgress_progressBar);
