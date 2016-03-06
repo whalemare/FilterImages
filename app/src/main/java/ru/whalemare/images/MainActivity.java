@@ -39,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String SHARED_TAG = "WHALE";
     private static final String KEY_MAIN_BITMAP = "MAIN_BITMAP";
 
-    private static final int CAMERA_RESULT = 0;
-    private static final int GALLERY_RESULT = 1;
+    private static final int ACTION_CAMERA = 0;
+    private static final int ACTION_GALLERY = 1;
 
     final Random random = new Random();
     int timeout; // время для конвертации изображения
@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showPopup(View view) {
         PopupMenu popupMenu = new PopupMenu(this, view);
-        popupMenu.inflate(R.menu.popup); // работает на 2.3.7
+        popupMenu.inflate(R.menu.popup);
 
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
@@ -161,11 +161,11 @@ public class MainActivity extends AppCompatActivity {
                 switch (item.getItemId()) {
                     case R.id.popup_onCamera:
                         Log.d(TAG, "onMenuItemClick: сделать снимок");
-                        makePicture(CAMERA_RESULT);
+                        makePicture(ACTION_CAMERA);
                         return true;
                     case R.id.popup_onDevice:
                         Log.d(TAG, "onMenuItemClick: загрузить с девайса");
-                        makePicture(GALLERY_RESULT);
+                        makePicture(ACTION_GALLERY);
                         return true;
                     case R.id.popup_onInternet:
                         Log.d(TAG, "onMenuItemClick: Скачать из интернета");
@@ -202,10 +202,10 @@ public class MainActivity extends AppCompatActivity {
     private void makePicture(int actionCode){
         Intent takePicture;
         switch (actionCode) {
-            case CAMERA_RESULT:
+            case ACTION_CAMERA:
                 takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 break;
-            case GALLERY_RESULT:
+            case ACTION_GALLERY:
                 takePicture = new Intent(Intent.ACTION_PICK);
                 takePicture.setType("image/*");
                 break;
@@ -220,34 +220,38 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        Bitmap bitmap = null;
         switch (requestCode) {
-            case CAMERA_RESULT:
+            case ACTION_CAMERA:
                 if (data.hasExtra("data")) {
-                    Bitmap thumbnailBitmap = (Bitmap) data.getExtras().get("data");
-                    setMainImage(thumbnailBitmap);
+                    bitmap = (Bitmap) data.getExtras().get("data");
+                    setMainImage(bitmap);
                     try {
-                        savePicture(thumbnailBitmap);
+                        savePicture(bitmap);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
                 break;
-            case GALLERY_RESULT:
+            case ACTION_GALLERY:
                 if (resultCode == RESULT_OK) {
-                    Bitmap bitmap = null;
                     Uri selectedImage = data.getData();
+
                     try {
                         bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImage);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+
                     if (bitmap != null) {
                         setMainImage(bitmap);
                         Log.d(TAG, "onActivityResult: selectedImage путь: " + selectedImage.getPath());
-                    } else
+                    } else {
                         Toast.makeText(MainActivity.this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show();
-                    break;
+                        break;
+                    }
                 }
+                break;
         }
     }
 

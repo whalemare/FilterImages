@@ -64,7 +64,8 @@ public class ListAdapter extends ArrayAdapter<Data> {
             holder.item.setProgressBar(holder.progressBar);
             holder.item.setImageView(holder.imageView);
             holder.item.setColor(holder.color);
-            row.setBackgroundColor(holder.color);
+            if (holder.color != -1)
+                row.setBackgroundColor(holder.color);
         }
 
         holder.imageView.setImageBitmap(item.getBitmapOut());
