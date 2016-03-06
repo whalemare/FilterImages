@@ -1,5 +1,7 @@
 package ru.whalemare.images;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -14,13 +16,26 @@ import java.net.URL;
 
 public class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
 
-    ImageView image;
-    Button button; // то, что нужно будет скрыть
+    private final ImageView image;
+    private final Button button; // то, что нужно будет скрыть
+    private final Context context;
+    private ProgressDialog dialog;
+
     private final String TAG = "WHALETAG";
 
-    public DownloadImageTask(ImageView image, Button button){
+    public DownloadImageTask(ImageView image, Button button, Context context){
         this.image = image;
         this.button = button;
+        this.context = context;
+        this.dialog = new ProgressDialog(context);
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        dialog.setTitle("Идет скачивание");
+        dialog.setMessage("Это не займет много времени");
+        dialog.show();
     }
 
     @Override
@@ -47,5 +62,8 @@ public class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
         button.setVisibility(View.GONE);
         image.setImageBitmap(bitmap);
         image.setVisibility(View.VISIBLE);
+
+        if (dialog.isShowing())
+            dialog.dismiss();
     }
 }

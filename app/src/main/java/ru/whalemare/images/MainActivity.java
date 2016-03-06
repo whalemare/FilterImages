@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
      * @param URL - ссылка на картинку
      */
     private void downloadImage(String URL){
-        DownloadImageTask download = new DownloadImageTask(image, downloadButton);
+        DownloadImageTask download = new DownloadImageTask(image, downloadButton, MainActivity.this);
         download.execute(URL);
     }
 }
