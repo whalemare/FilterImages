@@ -1,6 +1,7 @@
 package ru.whalemare.images;
 
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -9,11 +10,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -25,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_RESULT = 0;
     private static final int GALLERY_RESULT = 1;
 
-    int timeout = 0;
+    final Random random = new Random();
+    int timeout;
 
     SharedPreferences shared;
     static ImageView image; // главная фотография
@@ -57,6 +62,35 @@ public class MainActivity extends AppCompatActivity {
 
         adapter = new ListAdapter(getApplicationContext(), R.id.listView, dataList);
         listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, final int position, long l) {
+                final ImageView imagePreview = (ImageView) view.findViewById(R.id.itemProgress_previewImage);
+                final AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+                dialog.setTitle("Что делаем?")
+                        .setPositiveButton("Установить", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Bitmap bitmap = ((BitmapDrawable) imagePreview.getDrawable()).getBitmap();
+                                image.setImageBitmap(bitmap);
+                                Log.d(TAG, "onClick: установили изображение");
+                            }
+                        })
+                        .setNegativeButton("Удалить", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dataList.remove(position);
+                                adapter.notifyDataSetChanged();
+                            }
+                        })
+                        .setNeutralButton("Отмена", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int i) {
+                                dialog.cancel();
+                            }
+                        }).show();
+            }
+        });
     }
 
     public void onClick(View view){
@@ -71,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.button_rotate:
                 if (image.getVisibility() == View.VISIBLE) {
-                    timeout = 3;
+                    timeout = random.nextInt(10)+2;
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
                     dataList.add(new Data(bitmap, timeout, 0));
                     adapter.notifyDataSetChanged();
@@ -82,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_invertColors:
                 if (image.getVisibility() == View.VISIBLE) {
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
-                    timeout = 10;
+                    timeout = random.nextInt(10)+2;
                     dataList.add(new Data(bitmap, timeout, 1));
                     adapter.notifyDataSetChanged();
                 } else {
@@ -92,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_mirror:
                 if (image.getVisibility() == View.VISIBLE) {
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
-                    timeout = 10;
+                    timeout = random.nextInt(10)+2;
                     dataList.add(new Data(bitmap, timeout, 2));
                     adapter.notifyDataSetChanged();
                 } else {

@@ -2,6 +2,7 @@ package ru.whalemare.images;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,7 +65,10 @@ public class ListAdapter extends ArrayAdapter<Data> {
         if (holder.progressBar.getProgress() <= 0) {
             item.setState(Data.ConvertingState.QUEUED);
             ConvertImageTask convert = new ConvertImageTask(item);
-            convert.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                convert.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR); // в версиях >= 11 есть многопоточность
+            else
+                convert.execute(); // < 11 нет
         }
 
         return row;
