@@ -1,4 +1,4 @@
-package ru.whalemare.images;
+package ru.whalemare.images.Tasks;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -11,6 +11,8 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+
+import ru.whalemare.images.Data;
 
 public class ConvertImageTask extends AsyncTask<Void, Integer, Bitmap> {
 
@@ -70,7 +72,6 @@ public class ConvertImageTask extends AsyncTask<Void, Integer, Bitmap> {
 
         // Искусственно замедляем конвертацию
         for (int i=0; i <= item.getTimeout(); ++i) {
-            Log.d(TAG, "doInBackground: осталось " + (item.getTimeout()-i));
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -78,16 +79,14 @@ public class ConvertImageTask extends AsyncTask<Void, Integer, Bitmap> {
             }
             publishProgress(i);
         }
-        item.setBitmapOut(bitmap);
-        item.setState(Data.ConvertingState.COMPLETE);
 
         return bitmap;
     }
 
     @Override
-    protected void onPostExecute(Bitmap bitmap) {
+    protected void onPostExecute(Bitmap bitmap) throws NullPointerException {
         super.onPostExecute(bitmap);
-        Log.d(TAG, "onPostExecute: закончилась конвертация типа " + type);
+        Log.d(TAG, "onPostExecute: закончилась конвертация типа " + item.getType());
         item.setBitmapOut(bitmap);
         item.setState(Data.ConvertingState.COMPLETE);
         item.getImageView().setImageBitmap(bitmap);

@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import ru.whalemare.images.Tasks.DownloadImageTask;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "WHALETAG";
@@ -42,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     final Random random = new Random();
     int timeout; // время для конвертации изображения
 
-    SharedPreferences shared;
+    SharedPreferences shared; // для нумерования сделанных в приложении фотографий
     static ImageView image; // главная фотография
     Button downloadButton; // кнопка загрузки фотографии
     static ListView listView;
@@ -60,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.listView);
 
         Bitmap restoreBitmap; // сохраненный с предыдущего сеанса Bitmap
-        if (savedInstanceState != null) {
+        if (savedInstanceState != null) { // загрузим данные об предыдущем изображении
             restoreBitmap = savedInstanceState.getParcelable(KEY_MAIN_BITMAP);
             if (restoreBitmap != null)
                 setMainImage(restoreBitmap);
@@ -112,10 +114,11 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.button_rotate:
                 if (image.getVisibility() == View.VISIBLE) {
-                    timeout = random.nextInt(20)+2;
+                    timeout = random.nextInt(271)+30;
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
                     dataList.add(new Data(bitmap, timeout, 0));
                     adapter.notifyDataSetChanged();
+                    listView.smoothScrollToPosition(dataList.size());
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
@@ -123,9 +126,10 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_invertColors:
                 if (image.getVisibility() == View.VISIBLE) {
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
-                    timeout = random.nextInt(10)+2;
+                    timeout = random.nextInt(271)+30;
                     dataList.add(new Data(bitmap, timeout, 1));
                     adapter.notifyDataSetChanged();
+                    listView.smoothScrollToPosition(dataList.size());
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
@@ -133,9 +137,10 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_mirror:
                 if (image.getVisibility() == View.VISIBLE) {
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
-                    timeout = random.nextInt(10)+2;
+                    timeout = random.nextInt(271)+30;
                     dataList.add(new Data(bitmap, timeout, 2));
                     adapter.notifyDataSetChanged();
+                    listView.smoothScrollToPosition(dataList.size());
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
@@ -238,7 +243,6 @@ public class MainActivity extends AppCompatActivity {
                     if (bitmap != null) {
                         setMainImage(bitmap);
                         Log.d(TAG, "onActivityResult: selectedImage путь: " + selectedImage.getPath());
-//                    shared.edit().putString("imagepath", selectedImage+"").commit(); // сохраним путь хранения изображения
                     } else
                         Toast.makeText(MainActivity.this, "Ошибка при загрузке изображения", Toast.LENGTH_SHORT).show();
                     break;

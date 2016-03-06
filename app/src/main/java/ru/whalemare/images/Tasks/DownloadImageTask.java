@@ -1,4 +1,4 @@
-package ru.whalemare.images;
+package ru.whalemare.images.Tasks;
 
 import android.app.ProgressDialog;
 import android.content.Context;

@@ -26,6 +26,8 @@ public class Data {
     private volatile ImageView imageView; // изображение куда будем сеттить bitmap
     private volatile Bitmap bitmapOut; // битмап после конвертации
 
+    private int color = -1; // цвет фона
+
     /**
      * Для хранения данных о конвертируемом элемента
      * @param bimapForConverting - bitmap для конвертации
@@ -39,6 +41,14 @@ public class Data {
         this.bimapForConverting = bimapForConverting;
         this.timeout = timeout;
         this.type = type;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 
     public Bitmap getBitmapOut() {

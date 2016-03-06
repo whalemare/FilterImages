@@ -12,6 +12,8 @@ import android.widget.ProgressBar;
 
 import java.util.List;
 
+import ru.whalemare.images.Tasks.ConvertImageTask;
+
 public class ListAdapter extends ArrayAdapter<Data> {
 
     String TAG = "WHALETAG";
@@ -27,6 +29,7 @@ public class ListAdapter extends ArrayAdapter<Data> {
     private static class ViewHolder {
         ProgressBar progressBar;
         ImageView imageView;
+        int color;
         Data item;
     }
 
@@ -40,8 +43,9 @@ public class ListAdapter extends ArrayAdapter<Data> {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             row = inflater.inflate(R.layout.item_progress, parent, false);
 
-            if (position%2 == 0) {
-                row.setBackgroundColor(context.getResources().getColor(R.color.firstColor));
+            if (position % 2 == 0)
+            {
+                item.setColor(context.getResources().getColor(R.color.firstColor));
             }
 
             holder = new ViewHolder();
@@ -55,19 +59,25 @@ public class ListAdapter extends ArrayAdapter<Data> {
 
             holder.item.setProgressBar(null);
             holder.item.setImageView(null);
+            holder.item.setColor(-1);
             holder.item = item;
             holder.item.setProgressBar(holder.progressBar);
             holder.item.setImageView(holder.imageView);
+            holder.item.setColor(holder.color);
+            row.setBackgroundColor(holder.color);
         }
 
         holder.imageView.setImageBitmap(item.getBitmapOut());
         holder.progressBar.setMax(item.getTimeout());
         holder.progressBar.setProgress(item.getProgress());
+        holder.color = item.getColor();
 
         item.setProgressBar(holder.progressBar);
         item.setImageView(holder.imageView);
+        item.setColor(holder.color);
 
         if (holder.progressBar.getProgress() <= 0) {
+            row.setBackgroundColor(item.getColor());
             item.setState(Data.ConvertingState.QUEUED);
             ConvertImageTask convert = new ConvertImageTask(item);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
