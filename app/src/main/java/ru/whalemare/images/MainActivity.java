@@ -10,15 +10,14 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -26,7 +25,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,13 +37,11 @@ public class MainActivity extends AppCompatActivity {
 
     int timeout = 0;
 
-    private final Random random = new Random();
-
     SharedPreferences shared;
     static ImageView image; // главная фотография
     Button downloadImage; // кнопка загрузки фотографии
-    RecyclerView recyclerView;
-    RecyclerView.Adapter adapter;
+    static ListView listView;
+    static ListAdapter adapter;
     static List<Data> dataList = new ArrayList<>();
 
     @Override
@@ -57,16 +53,10 @@ public class MainActivity extends AppCompatActivity {
 
         image = (ImageView) findViewById(R.id.imageView_mainImage);
         downloadImage = (Button) findViewById(R.id.button_downloadImage);
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        listView = (ListView) findViewById(R.id.listView);
 
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-
-//        dataList.add(new Data(null, 20));
-
-        adapter = new ListAdapter(dataList);
-        adapter.notifyDataSetChanged();
-        recyclerView.setAdapter(adapter);
+        adapter = new ListAdapter(getApplicationContext(), R.id.listView, dataList);
+        listView.setAdapter(adapter);
     }
 
     public void onClick(View view){
@@ -81,30 +71,37 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.button_rotate:
                 if (image.getVisibility() == View.VISIBLE) {
+                    timeout = 3;
                     Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
-                    ConvertImageTask convertImageTask = new ConvertImageTask(bitmap, recyclerView, adapter, 0);
-                    convertImageTask.execute();
+                    dataList.add(new Data(bitmap, timeout, 0));
+                    adapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.button_invertColors:
                 if (image.getVisibility() == View.VISIBLE) {
-                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
-
+                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
+                    timeout = 10;
+                    dataList.add(new Data(bitmap, timeout, 1));
+                    adapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.button_mirror:
                 if (image.getVisibility() == View.VISIBLE) {
-                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
+                    timeout = 10;
+                    dataList.add(new Data(bitmap, timeout, 2));
+                    adapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(MainActivity.this, "Нет изображения", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }
     }
+
 
     private void showPopup(View view) {
         PopupMenu popupMenu = new PopupMenu(this, view);
@@ -235,9 +232,6 @@ public class MainActivity extends AppCompatActivity {
         DownloadImageTask download = new DownloadImageTask(image, downloadImage);
         download.execute(URL);
     }
-
-/*    convertImage = new ConvertImageTask(image, 0, MainActivity.this, adapter);
-    convertImage.execute(bitmap);*/
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {

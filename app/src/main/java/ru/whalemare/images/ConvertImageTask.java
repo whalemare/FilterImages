@@ -8,36 +8,33 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.os.AsyncTask;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 public class ConvertImageTask extends AsyncTask<Void, Integer, Bitmap> {
 
     private static final String TAG = "WHALETAG";
-    Random random = new Random();
-    int timeout = random.nextInt(5)+2; // для искусственного замедления конвертации
 
     private static final int TYPE_ROTATE = 0;
     private static final int TYPE_INVERT = 1;
     private static final int TYPE_MIRROR = 2;
 
-    private final int type;
+    private int type = -1;
 
-    RecyclerView recyclerView;
-    RecyclerView.Adapter adapter;
-    Bitmap bitmap;
-    List<Data> dataList = new ArrayList<>();
-    public ConvertImageTask(Bitmap bitmap, RecyclerView recyclerView, RecyclerView.Adapter adapter, int type) {
-        this.recyclerView = recyclerView;
-        this.adapter = adapter;
-        this.bitmap = bitmap;
-        this.type = type;
+//    private final WeakReference<ImageView> imageViewReference;
+
+    ProgressBar bar;
+    ImageView image;
+
+
+    final Data item;
+    public ConvertImageTask(Data item) {
+        this.item = item;
+//        imageViewReference = new WeakReference<ImageView>(item.getImageView());
     }
 
+    @Override
     protected void onPreExecute() {
         super.onPreExecute();
     }
@@ -45,12 +42,21 @@ public class ConvertImageTask extends AsyncTask<Void, Integer, Bitmap> {
     @Override
     protected void onProgressUpdate(Integer... values) {
         super.onProgressUpdate(values);
-        adapter.notifyDataSetChanged();
+        int i = values[0];
+        item.setProgress(i);
+        ProgressBar bar = item.getProgressBar();
+        if (bar != null) {
+            bar.setProgress(item.getProgress());
+            bar.invalidate();
+        }
     }
 
     @Override
-    protected Bitmap doInBackground(Void... Voids) {
-        switch(type){
+    protected Bitmap doInBackground(Void... voids) {
+        item.setState(Data.ConvertingState.IN_PROGRESS);
+        Bitmap bitmap = item.getBimapForConverting();
+
+        switch(item.getType()){
             case TYPE_ROTATE:
                 bitmap = rotateBitmap(bitmap);
                 break;
@@ -62,18 +68,18 @@ public class ConvertImageTask extends AsyncTask<Void, Integer, Bitmap> {
                 break;
         }
 
-        dataList.add(new Data(bitmap, 20));
-
         // Искусственно замедляем конвертацию
-        for (int i=1; i<=timeout; i++) {
-            Log.d(TAG, "doInBackground: осталось " + (timeout-i));
+        for (int i=0; i <= item.getTimeout(); ++i) {
+            Log.d(TAG, "doInBackground: осталось " + (item.getTimeout()-i));
             try {
-                Thread.sleep(1000); // спим 1 секунду
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             publishProgress(i);
         }
+        item.setBitmapOut(bitmap);
+        item.setState(Data.ConvertingState.COMPLETE);
 
         return bitmap;
     }
@@ -82,7 +88,9 @@ public class ConvertImageTask extends AsyncTask<Void, Integer, Bitmap> {
     protected void onPostExecute(Bitmap bitmap) {
         super.onPostExecute(bitmap);
         Log.d(TAG, "onPostExecute: закончилась конвертация типа " + type);
-        adapter.notifyDataSetChanged();
+        item.setBitmapOut(bitmap);
+        item.setState(Data.ConvertingState.COMPLETE);
+        item.getImageView().setImageBitmap(bitmap);
     }
 
     private Bitmap rotateBitmap(Bitmap bitmap) {

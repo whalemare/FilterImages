@@ -70,8 +70,8 @@
 
     </LinearLayout>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerView"
+    <ListView
+        android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -79,6 +79,6 @@
         android:layout_alignParentBottom="true"
         android:layout_below="@+id/linearLayout">
 
-    </android.support.v7.widget.RecyclerView>
+    </ListView>
 
 </RelativeLayout>
