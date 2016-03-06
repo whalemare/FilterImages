@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -250,6 +251,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Установка изображения в основное ImageView. При этом скрывается кнопка, стоящая на ее месте
+     * @param bitmap - изображение для вставки
+     */
     private void setMainImage(Bitmap bitmap) {
         // FIXME: 03.03.2016 если кнопка gone он повтороно убирает ее в gone
         downloadButton.setVisibility(View.GONE); // уберем кнопку
@@ -276,6 +281,31 @@ public class MainActivity extends AppCompatActivity {
         shared.edit().putString("imagepath", destination + (filename + ".png")).apply(); // сохраним путь хранения изображения
         // TODO: 02.03.2016 добавить регистрацию в Галерее
         // http://www.cyberforum.ru/android-dev/thread1584902.html
+
+        showEXIF(destination.toString());
+    }
+
+    private void showEXIF(String filename) throws IOException {
+        ExifInterface exif = new ExifInterface(filename);
+
+        String atributs = "Информация по EXIF: =======\n";
+        atributs += getTagString(ExifInterface.TAG_DATETIME, exif);
+        atributs += getTagString(ExifInterface.TAG_FLASH, exif);
+        atributs += getTagString(ExifInterface.TAG_GPS_LATITUDE, exif);
+        atributs += getTagString(ExifInterface.TAG_GPS_LATITUDE_REF, exif);
+        atributs += getTagString(ExifInterface.TAG_GPS_LONGITUDE, exif);
+        atributs += getTagString(ExifInterface.TAG_GPS_LONGITUDE_REF, exif);
+        atributs += getTagString(ExifInterface.TAG_IMAGE_LENGTH, exif);
+        atributs += getTagString(ExifInterface.TAG_IMAGE_WIDTH, exif);
+        atributs += getTagString(ExifInterface.TAG_MAKE, exif);
+        atributs += getTagString(ExifInterface.TAG_MODEL, exif);
+        atributs += getTagString(ExifInterface.TAG_ORIENTATION, exif);
+        atributs += getTagString(ExifInterface.TAG_WHITE_BALANCE, exif);
+        Log.d(TAG, atributs);
+    }
+
+    private String getTagString(String tag, ExifInterface exif){
+        return (tag + " : " + exif.getAttribute(tag) + "\n");
     }
 
     @Override
