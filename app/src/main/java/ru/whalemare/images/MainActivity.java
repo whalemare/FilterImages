@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     int timeout; // время для конвертации изображения
 
     SharedPreferences shared; // для нумерования сделанных в приложении фотографий
-    static ImageView image; // главная фотография
+    static ImageView mainImage; // главная фотография
     Button downloadButton; // кнопка загрузки фотографии
     static ListView listView;
     static ListAdapter adapter;
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         shared = getSharedPreferences(SHARED_TAG, MODE_PRIVATE);
 
-        image = (ImageView) findViewById(R.id.imageView_mainImage);
+        mainImage = (ImageView) findViewById(R.id.imageView_mainImage);
         downloadButton = (Button) findViewById(R.id.button_downloadImage);
         listView = (ListView) findViewById(R.id.listView);
 
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                                 // TODO: 06.03.2016 если картинка еще обрабатывается, не сеттить ее
                                 if (progressBar.getProgress() == progressBar.getMax()) {
                                     Bitmap bitmap = ((BitmapDrawable) imagePreview.getDrawable()).getBitmap();
-                                    image.setImageBitmap(bitmap);
+                                    mainImage.setImageBitmap(bitmap);
                                     Log.d(TAG, "onClick: установили изображение");
                                 } else {
                                     Toast.makeText(MainActivity.this, "Изображение еще не обработано", Toast.LENGTH_SHORT).show();
@@ -120,9 +120,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Нажали на изображение");
                 break;
             case R.id.button_rotate:
-                if (image.getVisibility() == View.VISIBLE) {
+                if (mainImage.getVisibility() == View.VISIBLE) {
                     timeout = random.nextInt(271)+30;
-                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
+                    Bitmap bitmap = ((BitmapDrawable) mainImage.getDrawable()).getBitmap(); // изображение для конвертации
                     dataList.add(new Data(bitmap, timeout, 0));
                     adapter.notifyDataSetChanged();
                     listView.smoothScrollToPosition(dataList.size());
@@ -131,8 +131,8 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case R.id.button_invertColors:
-                if (image.getVisibility() == View.VISIBLE) {
-                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
+                if (mainImage.getVisibility() == View.VISIBLE) {
+                    Bitmap bitmap = ((BitmapDrawable) mainImage.getDrawable()).getBitmap(); // изображение для конвертации
                     timeout = random.nextInt(271)+30;
                     dataList.add(new Data(bitmap, timeout, 1));
                     adapter.notifyDataSetChanged();
@@ -142,8 +142,8 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case R.id.button_mirror:
-                if (image.getVisibility() == View.VISIBLE) {
-                    Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap(); // изображение для конвертации
+                if (mainImage.getVisibility() == View.VISIBLE) {
+                    Bitmap bitmap = ((BitmapDrawable) mainImage.getDrawable()).getBitmap(); // изображение для конвертации
                     timeout = random.nextInt(271)+30;
                     dataList.add(new Data(bitmap, timeout, 2));
                     adapter.notifyDataSetChanged();
@@ -154,7 +154,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
-
 
     private void showPopup(View view) {
         PopupMenu popupMenu = new PopupMenu(this, view);
@@ -205,6 +204,10 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.show();
     }
 
+    /**
+     * Сетит картинку в main_image в зависимости
+     * @param actionCode
+     */
     private void makePicture(int actionCode){
         Intent takePicture;
         switch (actionCode) {
@@ -268,8 +271,8 @@ public class MainActivity extends AppCompatActivity {
     private void setMainImage(Bitmap bitmap) {
         // FIXME: 03.03.2016 если кнопка gone он повтороно убирает ее в gone
         downloadButton.setVisibility(View.GONE); // уберем кнопку
-        image.setImageBitmap(bitmap); // и поставим на ее место изображение
-        image.setVisibility(View.VISIBLE);
+        mainImage.setImageBitmap(bitmap); // и поставим на ее место изображение
+        mainImage.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -321,8 +324,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (image.getVisibility() == View.VISIBLE) {
-            Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+        if (mainImage.getVisibility() == View.VISIBLE) {
+            Bitmap bitmap = ((BitmapDrawable) mainImage.getDrawable()).getBitmap();
             outState.putParcelable(KEY_MAIN_BITMAP, bitmap);
         }
     }
@@ -332,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
      * @param URL - ссылка на картинку
      */
     private void downloadImage(String URL){
-        DownloadImageTask download = new DownloadImageTask(image, downloadButton, MainActivity.this);
+        DownloadImageTask download = new DownloadImageTask(mainImage, downloadButton, MainActivity.this);
         download.execute(URL);
     }
 }
