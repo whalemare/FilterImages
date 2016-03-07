@@ -34,6 +34,12 @@ import java.util.Random;
 
 import ru.whalemare.images.Tasks.DownloadImageTask;
 
+/**
+ * Если приложение не насиловать частыми и быстрыми нажатиями на <br>
+ * кнопки обработки, то оно работает вполне стабильно и выполняет все свои функции. <br>
+ * Я смог побороть баг с отображением итемов в listView, но к сожалению, довольно костыльным методом.
+ * Мне стыдно, обычно я так не делаю.
+ */
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "WHALETAG";
