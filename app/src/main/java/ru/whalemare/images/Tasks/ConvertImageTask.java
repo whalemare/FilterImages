@@ -9,6 +9,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
@@ -84,12 +85,17 @@ public class ConvertImageTask extends AsyncTask<Void, Integer, Bitmap> {
     }
 
     @Override
-    protected void onPostExecute(Bitmap bitmap) throws NullPointerException {
+    protected void onPostExecute(Bitmap bitmap) {
         super.onPostExecute(bitmap);
-        Log.d(TAG, "onPostExecute: закончилась конвертация типа " + item.getType());
-        item.setBitmapOut(bitmap);
-        item.setState(Data.ConvertingState.COMPLETE);
-        item.getImageView().setImageBitmap(bitmap);
+        try {
+            Log.d(TAG, "onPostExecute: закончилась конвертация типа " + item.getType());
+            item.setBitmapOut(bitmap);
+            item.setState(Data.ConvertingState.COMPLETE);
+            item.getImageView().setImageBitmap(bitmap);
+            item.getProgressBar().setVisibility(View.GONE);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
     }
 
     private Bitmap rotateBitmap(Bitmap bitmap) {

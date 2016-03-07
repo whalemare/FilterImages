@@ -58,6 +58,7 @@ public class ListAdapter extends ArrayAdapter<Data> {
             holder = (ViewHolder) row.getTag();
 
             holder.item.setProgressBar(null);
+//            holder.item.getProgressBar().setVisibility(View.VISIBLE);
             holder.item.setImageView(null);
             holder.item.setColor(-1);
             holder.item = item;
@@ -78,6 +79,7 @@ public class ListAdapter extends ArrayAdapter<Data> {
         item.setColor(holder.color);
 
         if (holder.progressBar.getProgress() <= 0) {
+            holder.progressBar.setVisibility(View.VISIBLE);
             row.setBackgroundColor(item.getColor());
             item.setState(Data.ConvertingState.QUEUED);
             ConvertImageTask convert = new ConvertImageTask(item);

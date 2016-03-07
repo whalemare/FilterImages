@@ -22,6 +22,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.File;
@@ -75,15 +76,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int position, long l) {
                 final ImageView imagePreview = (ImageView) view.findViewById(R.id.itemProgress_previewImage);
+                final ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.itemProgress_progressBar);
                 final AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
                 dialog.setTitle("Что делаем?")
                         .setPositiveButton("Установить", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 // TODO: 06.03.2016 если картинка еще обрабатывается, не сеттить ее
-                                Bitmap bitmap = ((BitmapDrawable) imagePreview.getDrawable()).getBitmap();
-                                image.setImageBitmap(bitmap);
-                                Log.d(TAG, "onClick: установили изображение");
+                                if (progressBar.getProgress() == progressBar.getMax()) {
+                                    Bitmap bitmap = ((BitmapDrawable) imagePreview.getDrawable()).getBitmap();
+                                    image.setImageBitmap(bitmap);
+                                    Log.d(TAG, "onClick: установили изображение");
+                                } else {
+                                    Toast.makeText(MainActivity.this, "Изображение еще не обработано", Toast.LENGTH_SHORT).show();
+                                }
                             }
                         })
                         .setNegativeButton("Удалить", new DialogInterface.OnClickListener() {
